@@ -147,7 +147,7 @@ export async function makeRequest(request, readResponseBody) {
 
   let response = await fetch(request);
   let body = await readResponseBody(response);
-  let { ok, status, textStatus, headers } = response;
+  let { ok, status, statusText, headers } = response;
 
   headers = Array.from(headers).reduce((headers, [key, value]) => {
     headers[key] = value;
@@ -157,7 +157,7 @@ export async function makeRequest(request, readResponseBody) {
   return {
     ok,
     status,
-    textStatus,
+    statusText,
     headers,
     body
   };

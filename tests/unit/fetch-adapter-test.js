@@ -35,7 +35,7 @@ module('FetchAdapter', function(hooks) {
   });
 
   test('#request', async function(assert) {
-    assert.expect(4);
+    assert.expect(6);
     let posts = [{ id: 1 }];
     stubRequest('get', '/posts', request => {
       assert.deepEqual(request.queryParams, { sort: 'title' });
@@ -49,6 +49,10 @@ module('FetchAdapter', function(hooks) {
 
     assert.ok(response.ok);
     assert.equal(response.status, 200);
+    assert.equal(response.statusText, 'OK');
+    assert.deepEqual(response.headers, {
+      'content-type': 'application/json'
+    });
     assert.deepEqual(response.body, posts);
   });
 
