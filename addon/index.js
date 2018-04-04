@@ -4,9 +4,6 @@ import fetch, { Request, Headers } from 'fetch';
 import { serializeQueryParams } from 'ember-fetch/mixins/adapter-fetch';
 
 export default Service.extend({
-  host: '/',
-  namespace: null,
-
   async methodForRequest({ method = 'get' }) {
     return method;
   },
@@ -46,13 +43,12 @@ export default Service.extend({
   },
 
   async urlForRequest(params) {
-    let { host, namespace } = this;
     let { path, query } = await hash({
       path: this.pathForRequest(params),
       query: this.queryForRequest(params)
     });
 
-    let url = [host, namespace, path].filter(Boolean).join('');
+    let url = this.buildURL(path);
 
     if (query) {
       query = serializeQueryParams(query);
@@ -73,6 +69,39 @@ export default Service.extend({
       mode,
       credentials
     };
+  },
+
+  buildURL(path) {
+    if (/^\/\//.test(path) || /http(s)?:\/\//.test(path)) {
+      // Do nothing, the full host is already included.
+      return path;
+    }
+
+    let { host, namespace } = this;
+    let url = [];
+
+    if (!host || host === '/') {
+      host = '';
+    }
+    if (host) {
+      url.push(host);
+    }
+    if (namespace) {
+      url.push(namespace);
+    }
+    url = url.join('/');
+
+    if (path.charAt(0) === '/') {
+      url += path;
+    } else {
+      url += '/' + path;
+    }
+
+    if (!host && url && url.charAt(0) !== '/') {
+      url = '/' + url;
+    }
+
+    return url;
   },
 
   async requestFor(params) {

@@ -51,4 +51,37 @@ module('FetchAdapter', function(hooks) {
     assert.equal(response.status, 200);
     assert.deepEqual(response.body, posts);
   });
+
+  test('#buildURL', async function(assert) {
+    let url = this.adapter.buildURL('posts');
+    assert.equal(url, '/posts');
+
+    url = this.adapter.buildURL('/posts');
+    assert.equal(url, '/posts');
+
+    url = this.adapter.buildURL('https://test.com/posts');
+    assert.equal(url, 'https://test.com/posts');
+
+    this.adapter.host = 'https://example.com';
+
+    url = this.adapter.buildURL('posts');
+    assert.equal(url, 'https://example.com/posts');
+
+    url = this.adapter.buildURL('/posts');
+    assert.equal(url, 'https://example.com/posts');
+
+    url = this.adapter.buildURL('https://test.com/posts');
+    assert.equal(url, 'https://test.com/posts');
+
+    this.adapter.namespace = 'api';
+
+    url = this.adapter.buildURL('posts');
+    assert.equal(url, 'https://example.com/api/posts');
+
+    url = this.adapter.buildURL('/posts');
+    assert.equal(url, 'https://example.com/api/posts');
+
+    url = this.adapter.buildURL('https://test.com/posts');
+    assert.equal(url, 'https://test.com/posts');
+  });
 });
