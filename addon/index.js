@@ -20,8 +20,8 @@ export default Service.extend({
     return query;
   },
 
-  async bodyForRequest({ data }) {
-    return data ? JSON.stringify(data) : null;
+  async bodyForRequest({ body }) {
+    return body ? JSON.stringify(body) : null;
   },
 
   async normalize(params, { body }) {
@@ -117,21 +117,25 @@ export default Service.extend({
     method = method.toUpperCase();
     headers = new Headers(headers);
 
-    if (method !== 'GET') {
-      headers.append('content-type', 'application/json; charset=utf-8');
-    }
-
     Object.assign(options, {
       method,
       headers
     });
 
     if (method === 'GET' || method === 'HEAD') {
-      if (params.data) {
+      if (params.body) {
         throw new Error(`${method} request with body`);
       }
     } else {
-      options.body = await this.bodyForRequest(params);
+      let body = await this.bodyForRequest(params);
+
+      if (body) {
+        options.body = body;
+
+        if (!headers.has('content-type')) {
+          headers.set('content-type', 'application/json; charset=utf-8');
+        }
+      }
     }
 
     return new Request(url, options);

@@ -21,7 +21,7 @@ module('FetchAdapter', function(hooks) {
     let request = await this.adapter.requestFor({
       url: 'posts',
       method: 'post',
-      data: { hello: 'world' }
+      body: { hello: 'world' }
     });
 
     assert.equal(request.url, '/posts');
