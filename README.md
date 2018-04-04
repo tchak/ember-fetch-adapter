@@ -1,20 +1,39 @@
-ember-fetcher
+ember-fetch-adapter
 ==============================================================================
 
-[Short description of the addon.]
+[![Build Status](https://travis-ci.org/tchak/ember-fetch-adapter.svg?branch=master)](https://travis-ci.org/tchak/ember-fetch-adapter)
+[![Ember Observer Score](http://emberobserver.com/badges/ember-fetch-adapter.svg)](http://emberobserver.com/addons/ember-fetch-adapter)
+[![npm version](https://badge.fury.io/js/ember-fetch-adapter.svg)](http://badge.fury.io/js/ember-fetch-adapter)
+
+A Network Adapter Service based on https://github.com/emberjs/rfcs/pull/171
 
 Installation
 ------------------------------------------------------------------------------
 
 ```
-ember install ember-fetcher
+ember install ember-fetch-adapter
 ```
 
 
 Usage
 ------------------------------------------------------------------------------
 
-[Longer description of how to use the addon in apps.]
+```javascript
+import Route from '@ember/routing/route';
+import { inject as service } from '@ember/service';
+
+export default Route.extend({
+  adapter: service(),
+
+  async model() {
+    let { ok, body } = await this.adapter.request({ url: 'items' });
+
+    if (ok) {
+      return body;
+    }
+  }
+});
+```
 
 
 Contributing
@@ -23,7 +42,7 @@ Contributing
 ### Installation
 
 * `git clone <repository-url>`
-* `cd ember-fetcher`
+* `cd ember-fetch-adapter`
 * `yarn install`
 
 ### Linting
