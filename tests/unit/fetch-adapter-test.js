@@ -77,7 +77,7 @@ module('FetchAdapter', function(hooks) {
     assert.deepEqual(await response.json(), posts);
   });
 
-  test('#request().json()', async function(assert) {
+  test('#fetch().url().json()', async function(assert) {
     assert.expect(2);
     let posts = [{ id: 1 }];
     stubRequest('get', '/posts', request => {
@@ -95,7 +95,7 @@ module('FetchAdapter', function(hooks) {
     assert.deepEqual(body, posts);
   });
 
-  test('#request().json() 404', async function(assert) {
+  test('#fetch().url().json() 404', async function(assert) {
     assert.expect(4);
     let error = { error: 'not found' };
     stubRequest('get', '/posts', request => {
@@ -113,6 +113,24 @@ module('FetchAdapter', function(hooks) {
     assert.equal(e.message, 'NetworkError');
     assert.equal(e.status, 404);
     assert.deepEqual(e.body, error);
+  });
+
+  test('#fetch().url().json() 204', async function(assert) {
+    assert.expect(2);
+    stubRequest('put', '/posts/1', request => {
+      return request.noContent();
+    });
+
+    let request = this.adapter
+      .fetch()
+      .url('posts/1')
+      .put();
+
+    let response = await request.response();
+    let body = await request.json();
+
+    assert.equal(body, null);
+    assert.equal(response.status, 204);
   });
 
   test('#buildURL', async function(assert) {

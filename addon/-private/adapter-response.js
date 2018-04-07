@@ -55,6 +55,9 @@ function respond(response, body) {
 }
 
 function readBody(response, type, normalize) {
+  if (response.ok && response.status === 204) {
+    return null;
+  }
   return response[type]().then(body => normalize(body, response));
 }
 
