@@ -1,6 +1,6 @@
 {
   "name": "ember-fetch-adapter",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A Network Adapter Service based on Ember RFC #171.",
   "keywords": [
     "ember-addon"
