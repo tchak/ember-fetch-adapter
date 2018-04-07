@@ -2,6 +2,8 @@ import Service from '@ember/service';
 import { hash } from 'rsvp';
 import fetch, { Request, Headers } from 'fetch';
 import { serializeQueryParams } from 'ember-fetch/mixins/adapter-fetch';
+import AdapterRequest from './-private/adapter-request';
+import AdapterResponse from './-private/adapter-response';
 
 export default Service.extend({
   async methodForRequest({ method = 'get' }) {
@@ -21,31 +23,42 @@ export default Service.extend({
   },
 
   async bodyForRequest({ body }) {
-    return body ? JSON.stringify(body) : null;
+    if (typeof body === 'string') {
+      return body;
+    }
+    return JSON.stringify(body);
   },
 
-  async normalize(params, { body }) {
+  async normalizeSuccess(options, body) {
     return body;
   },
 
-  async normalizeError(params, { body }) {
+  async normalizeError(options, body) {
     return body;
   },
 
-  async request(params) {
-    let request = await this.requestFor(params);
-    let response = await makeRequest(request);
-    response.body = response.ok
-      ? await this.normalize(params, response)
-      : await this.normalizeError(params, response);
-
-    return Object.freeze(response);
+  normalize(options, body, response) {
+    if (arguments.length === 1) {
+      return (body, response) => this.normalize(options, body, response);
+    }
+    if (response.ok) {
+      return this.normalizeSuccess(options, body, response);
+    }
+    return this.normalizeError(options, body, response);
   },
 
-  async urlForRequest(params) {
+  fetch(options) {
+    if (arguments.length === 0) {
+      return new AdapterRequest(options => this.fetch(options));
+    }
+    let response = this.requestFor(options).then(request => fetch(request));
+    return new AdapterResponse(response, this.normalize(options));
+  },
+
+  async urlForRequest(options) {
     let { path, query } = await hash({
-      path: this.pathForRequest(params),
-      query: this.queryForRequest(params)
+      path: this.pathForRequest(options),
+      query: this.queryForRequest(options)
     });
 
     let url = this.buildURL(path);
@@ -141,24 +154,3 @@ export default Service.extend({
     return new Request(url, options);
   }
 });
-
-export async function makeRequest(request, readResponseBody) {
-  readResponseBody = readResponseBody || (response => response.json());
-
-  let response = await fetch(request);
-  let body = await readResponseBody(response);
-  let { ok, status, statusText, headers } = response;
-
-  headers = Array.from(headers).reduce((headers, [key, value]) => {
-    headers[key] = value;
-    return headers;
-  }, {});
-
-  return {
-    ok,
-    status,
-    statusText,
-    headers,
-    body
-  };
-}

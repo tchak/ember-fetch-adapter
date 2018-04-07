@@ -34,15 +34,15 @@ module('FetchAdapter', function(hooks) {
     );
   });
 
-  test('#request', async function(assert) {
-    assert.expect(6);
+  test('#fetch()', async function(assert) {
+    assert.expect(5);
     let posts = [{ id: 1 }];
     stubRequest('get', '/posts', request => {
       assert.deepEqual(request.queryParams, { sort: 'title' });
       return request.ok(posts);
     });
 
-    let response = await this.adapter.request({
+    let response = await this.adapter.fetch({
       url: 'posts',
       query: { sort: 'title' }
     });
@@ -50,10 +50,69 @@ module('FetchAdapter', function(hooks) {
     assert.ok(response.ok);
     assert.equal(response.status, 200);
     assert.equal(response.statusText, 'OK');
+    assert.ok(response.headers.has('content-type'));
+  });
+
+  test('#fetch().response()', async function(assert) {
+    assert.expect(6);
+    let posts = [{ id: 1 }];
+    stubRequest('get', '/posts', request => {
+      assert.deepEqual(request.queryParams, { sort: 'title' });
+      return request.ok(posts);
+    });
+
+    let response = await this.adapter
+      .fetch({
+        url: 'posts',
+        query: { sort: 'title' }
+      })
+      .response();
+
+    assert.ok(response.ok);
+    assert.equal(response.status, 200);
+    assert.equal(response.statusText, 'OK');
     assert.deepEqual(response.headers, {
       'content-type': 'application/json'
     });
-    assert.deepEqual(response.body, posts);
+    assert.deepEqual(await response.json(), posts);
+  });
+
+  test('#request().json()', async function(assert) {
+    assert.expect(2);
+    let posts = [{ id: 1 }];
+    stubRequest('get', '/posts', request => {
+      assert.deepEqual(request.queryParams, { sort: 'title' });
+      return request.ok(posts);
+    });
+
+    let body = await this.adapter
+      .fetch()
+      .url('posts')
+      .query({ sort: 'title' })
+      .get()
+      .json();
+
+    assert.deepEqual(body, posts);
+  });
+
+  test('#request().json() 404', async function(assert) {
+    assert.expect(4);
+    let error = { error: 'not found' };
+    stubRequest('get', '/posts', request => {
+      return request.notFound(error);
+    });
+
+    let e = await this.adapter
+      .fetch()
+      .url('posts')
+      .get()
+      .json()
+      .catch(e => e);
+
+    assert.ok(e instanceof Error);
+    assert.equal(e.message, 'NetworkError');
+    assert.equal(e.status, 404);
+    assert.deepEqual(e.body, error);
   });
 
   test('#buildURL', async function(assert) {

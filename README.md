@@ -26,11 +26,7 @@ export default Route.extend({
   adapter: service(),
 
   async model() {
-    let { ok, body } = await this.adapter.request({ url: 'items' });
-
-    if (ok) {
-      return body;
-    }
+    return this.adapter.fetch({ url: 'items' }).json();
   }
 });
 ```
