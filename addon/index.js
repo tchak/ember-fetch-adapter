@@ -1,11 +1,22 @@
 import Service from '@ember/service';
+import { computed } from '@ember/object';
+import { getOwner } from '@ember/application';
+import { get } from '@ember/object';
 import { hash } from 'rsvp';
 import fetch, { Request, Headers } from 'fetch';
 import { serializeQueryParams } from 'ember-fetch/mixins/adapter-fetch';
 import AdapterRequest from './-private/adapter-request';
 import AdapterResponse from './-private/adapter-response';
 
+const httpRegex = /^https?:\/\//;
+const protocolRelativeRegex = /^\/\//;
+
 export default Service.extend({
+  fastboot: computed(function() {
+    let owner = getOwner(this);
+    return owner && owner.lookup('service:fastboot');
+  }),
+
   async methodForRequest({ method = 'get' }) {
     return method;
   },
@@ -114,7 +125,29 @@ export default Service.extend({
       url = '/' + url;
     }
 
+    if (get(this, 'fastboot.isFastBoot')) {
+      url = this.buildFastbootURL(url);
+    }
+
     return url;
+  },
+
+  buildFastbootURL(url) {
+    let protocol = get(this, 'fastboot.request.protocol');
+    let host = get(this, 'fastboot.request.host');
+
+    if (protocolRelativeRegex.test(url)) {
+      return `${protocol}${url}`;
+    } else if (!httpRegex.test(url)) {
+      try {
+        return `${protocol}//${host}${url}`;
+      } catch (fbError) {
+        throw new Error(
+          'You are using Fetch Adapter with no host defined in your adapter. This will attempt to use the host of the FastBoot request, which is not configured for the current host of this request. Please set the hostWhitelist property for in your environment.js. FastBoot Error: ' +
+            fbError.message
+        );
+      }
+    }
   },
 
   async requestFor(params) {
