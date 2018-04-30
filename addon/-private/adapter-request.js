@@ -1,21 +1,26 @@
+import getPrivateScope from './get-private-scope';
+
 export default class AdapterRequest {
-  constructor(fetch, options = {}) {
+  constructor(fetch, options) {
     this.fetch = fetch;
-    this.options = options;
+    if (options) {
+      Object.assign(getPrivateScope(this), options);
+    }
   }
 
-  factory(options = {}) {
-    options = Object.assign({}, this.options, options);
-    return new AdapterRequest(this.fetch, options);
+  clone(options = {}) {
+    let adapter = new AdapterRequest(this.fetch);
+    Object.assign(getPrivateScope(adapter), getPrivateScope(this), options);
+    return adapter;
   }
 
   url(url) {
-    return this.factory({ url });
+    return this.clone({ url });
   }
 
   headers(headers) {
-    headers = Object.assign(this.options.headers || {}, headers);
-    return this.factory({ headers });
+    headers = Object.assign({}, getPrivateScope(this).headers, headers);
+    return this.clone({ headers });
   }
 
   /**
@@ -43,17 +48,17 @@ export default class AdapterRequest {
   }
 
   query(query) {
-    query = Object.assign(this.options.query || {}, query);
-    return this.factory({ query });
+    query = Object.assign({}, getPrivateScope(this).query, query);
+    return this.clone({ query });
   }
 
   options(options) {
-    options = Object.assign(this.options.options || {}, options);
-    return this.factory({ options });
+    options = Object.assign({}, getPrivateScope(this).options, options);
+    return this.clone({ options });
   }
 
   body(body) {
-    return this.factory({ body });
+    return this.clone({ body });
   }
 
   json(object) {
@@ -85,7 +90,7 @@ export default class AdapterRequest {
   }
 
   method(method) {
-    let options = Object.assign({}, this.options, { method });
+    let options = Object.assign({}, getPrivateScope(this), { method });
     return this.fetch(options);
   }
 }
