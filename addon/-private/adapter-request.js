@@ -1,16 +1,19 @@
+import { assign } from '@ember/polyfills';
 import getPrivateScope from './get-private-scope';
+import merge, { deepMerge } from './merge';
 
 export default class AdapterRequest {
   constructor(fetch, options) {
     this.fetch = fetch;
     if (options) {
-      Object.assign(getPrivateScope(this), options);
+      assign(getPrivateScope(this), options);
     }
   }
 
   clone(options = {}) {
     let adapter = new AdapterRequest(this.fetch);
-    Object.assign(getPrivateScope(adapter), getPrivateScope(this), options);
+    options = deepMerge(getPrivateScope(this), options);
+    assign(getPrivateScope(adapter), options);
     return adapter;
   }
 
@@ -19,8 +22,19 @@ export default class AdapterRequest {
   }
 
   headers(headers) {
-    headers = Object.assign({}, getPrivateScope(this).headers, headers);
     return this.clone({ headers });
+  }
+
+  query(query) {
+    return this.clone({ query });
+  }
+
+  options(options) {
+    return this.clone({ options });
+  }
+
+  body(body) {
+    return this.clone({ body });
   }
 
   /**
@@ -28,7 +42,7 @@ export default class AdapterRequest {
    * @param header Header value
    */
   accept(header) {
-    return this.headers({ Accept: header });
+    return this.headers({ accept: header });
   }
 
   /**
@@ -36,7 +50,7 @@ export default class AdapterRequest {
    * @param header Header value
    */
   content(header) {
-    return this.headers({ 'Content-Type': header });
+    return this.headers({ 'content-type': header });
   }
 
   /**
@@ -44,21 +58,7 @@ export default class AdapterRequest {
    * @param header Header value
    */
   auth(header) {
-    return this.headers({ Authorization: header });
-  }
-
-  query(query) {
-    query = Object.assign({}, getPrivateScope(this).query, query);
-    return this.clone({ query });
-  }
-
-  options(options) {
-    options = Object.assign({}, getPrivateScope(this).options, options);
-    return this.clone({ options });
-  }
-
-  body(body) {
-    return this.clone({ body });
+    return this.headers({ authorization: header });
   }
 
   json(object) {
@@ -90,7 +90,7 @@ export default class AdapterRequest {
   }
 
   method(method) {
-    let options = Object.assign({}, getPrivateScope(this), { method });
+    let options = merge(getPrivateScope(this), { method });
     return this.fetch(options);
   }
 }
