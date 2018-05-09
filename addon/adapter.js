@@ -3,6 +3,7 @@ import { serializeQueryParams } from 'ember-fetch/mixins/adapter-fetch';
 import AdapterRequest from './-private/adapter-request';
 import AdapterResponse from './-private/adapter-response';
 import merge from './-private/merge';
+import signalForRequest from './-private/signal-for-request';
 
 export default class Adapter {
   constructor(options = {}) {
@@ -57,7 +58,10 @@ export default class Adapter {
   }
 
   fetch(options) {
-    let response = this.requestFor(options).then(request => fetch(request));
+    let { signal, timeout } = options;
+    let response = this.requestFor(options).then(request =>
+      this.makeRequest(request, { signal, timeout })
+    );
     return new AdapterResponse(response, this.normalize(options));
   }
 
@@ -125,6 +129,19 @@ export default class Adapter {
 
   buildServerURL(url) {
     return url;
+  }
+
+  makeRequest(request, options = {}) {
+    let [signal, resolve, reject] = signalForRequest(options);
+
+    if (signal) {
+      request.signal = signal;
+    }
+    if (resolve && reject) {
+      return fetch(request).then(resolve, reject);
+    }
+
+    return fetch(request);
   }
 
   async requestFor(params) {
