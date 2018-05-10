@@ -2,6 +2,7 @@ import fetch, { Request, Headers } from 'fetch';
 import { serializeQueryParams } from 'ember-fetch/mixins/adapter-fetch';
 import AdapterRequest from './-private/adapter-request';
 import AdapterResponse from './-private/adapter-response';
+import { assign } from '@ember/polyfills';
 
 export default class Adapter {
   constructor(options = {}) {
@@ -15,7 +16,7 @@ export default class Adapter {
   }
 
   async headersForRequest({ headers }) {
-    return Object.assign({}, this.headers, headers);
+    return assign({}, this.headers, headers);
   }
 
   async pathForRequest({ url }) {
@@ -136,7 +137,7 @@ export default class Adapter {
     method = method.toUpperCase();
     headers = new Headers(headers);
 
-    Object.assign(options, {
+    assign(options, {
       method,
       headers
     });
