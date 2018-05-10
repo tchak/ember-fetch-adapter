@@ -2,7 +2,7 @@ import fetch, { Request, Headers } from 'fetch';
 import { serializeQueryParams } from 'ember-fetch/mixins/adapter-fetch';
 import AdapterRequest from './-private/adapter-request';
 import AdapterResponse from './-private/adapter-response';
-import { assign } from '@ember/polyfills';
+import merge from './-private/merge';
 
 export default class Adapter {
   constructor(options = {}) {
@@ -16,7 +16,7 @@ export default class Adapter {
   }
 
   async headersForRequest({ headers }) {
-    return assign({}, this.headers, headers);
+    return merge(this.headers, headers);
   }
 
   async pathForRequest({ url }) {
@@ -137,10 +137,8 @@ export default class Adapter {
     method = method.toUpperCase();
     headers = new Headers(headers);
 
-    assign(options, {
-      method,
-      headers
-    });
+    options.method = method;
+    options.headers = headers;
 
     if (method === 'GET' || method === 'HEAD') {
       if (params.body) {

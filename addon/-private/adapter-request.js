@@ -1,4 +1,3 @@
-import { assign } from '@ember/polyfills';
 import getPrivateScope from './get-private-scope';
 import merge, { deepMerge } from './merge';
 
@@ -6,14 +5,14 @@ export default class AdapterRequest {
   constructor(fetch, options) {
     this.fetch = fetch;
     if (options) {
-      assign(getPrivateScope(this), options);
+      getPrivateScope(this, options);
     }
   }
 
   clone(options = {}) {
     let adapter = new AdapterRequest(this.fetch);
     options = deepMerge(getPrivateScope(this), options);
-    assign(getPrivateScope(adapter), options);
+    getPrivateScope(adapter, options);
     return adapter;
   }
 

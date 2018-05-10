@@ -1,12 +1,12 @@
 import { module, test } from 'qunit';
-import FetchAdapter from 'ember-fetch-adapter';
+import Adapter from 'ember-fetch-adapter/adapter';
 import { setupFakeServer, stubRequest } from 'ember-cli-fake-server';
 
 module('FetchAdapter', function(hooks) {
   setupFakeServer(hooks);
 
   hooks.beforeEach(function() {
-    this.adapter = new FetchAdapter();
+    this.adapter = new Adapter();
   });
 
   test('#requestFor', async function(assert) {
