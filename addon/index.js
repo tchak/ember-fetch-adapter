@@ -15,14 +15,10 @@ export default Service.extend(AdapterMixin, {
     return owner && owner.lookup('service:fastboot');
   }),
 
-  protocolForUrl(url) {
-    if (get(this, 'fastboot.isFastBoot')) {
-      url = this.buildFastbootURL(url);
+  buildServerURL(url) {
+    if (!get(this, 'fastboot.isFastBoot')) {
+      return url;
     }
-    return url;
-  },
-
-  buildFastbootURL(url) {
     let protocol = get(this, 'fastboot.request.protocol');
     let host = get(this, 'fastboot.request.host');
 

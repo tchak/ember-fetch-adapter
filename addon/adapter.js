@@ -116,12 +116,12 @@ export default class Adapter {
       url = '/' + url;
     }
 
-    url = this.protocolForUrl(url);
+    url = this.buildServerURL(url);
 
     return url;
   }
 
-  protocolForUrl(url) {
+  buildServerURL(url) {
     return url;
   }
 
