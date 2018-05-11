@@ -86,7 +86,7 @@ module('FetchAdapter', function(hooks) {
     });
 
     let body = await this.adapter
-      .fetch()
+      .request()
       .url('posts')
       .query({ sort: 'title' })
       .get()
@@ -103,7 +103,7 @@ module('FetchAdapter', function(hooks) {
     });
 
     let e = await this.adapter
-      .fetch()
+      .request()
       .url('posts')
       .get()
       .json()
@@ -122,7 +122,7 @@ module('FetchAdapter', function(hooks) {
     });
 
     let request = this.adapter
-      .fetch()
+      .request()
       .url('posts/1')
       .put();
 

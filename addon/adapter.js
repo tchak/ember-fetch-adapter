@@ -52,10 +52,11 @@ export default class Adapter {
     return this.normalizeError(options, body, response);
   }
 
+  request(params) {
+    return new AdapterRequest(options => this.fetch(options), params);
+  }
+
   fetch(options) {
-    if (arguments.length === 0) {
-      return new AdapterRequest(options => this.fetch(options));
-    }
     let response = this.requestFor(options).then(request => fetch(request));
     return new AdapterResponse(response, this.normalize(options));
   }
