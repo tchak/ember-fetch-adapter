@@ -36,6 +36,14 @@ export default class AdapterRequest {
     return this.clone({ body });
   }
 
+  timeout(timeout) {
+    return this.clone({ timeout });
+  }
+
+  signal(signal) {
+    return this.clone({ signal });
+  }
+
   /**
    * Shortcut to set the "Accept" header.
    * @param header Header value
