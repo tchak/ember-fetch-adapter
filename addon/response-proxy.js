@@ -1,4 +1,4 @@
-export default class AdapterResponse {
+export default class ResponseProxy {
   constructor(promise, normalize) {
     this.promise = promise;
     this.normalize = normalize;

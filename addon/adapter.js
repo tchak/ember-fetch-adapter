@@ -1,14 +1,18 @@
 import fetch, { Request, Headers } from 'fetch';
-import { serializeQueryParams } from 'ember-fetch/mixins/adapter-fetch';
-import AdapterRequest from './-private/adapter-request';
-import AdapterResponse from './-private/adapter-response';
-import merge from './-private/merge';
+import RequestBuilder from './request-builder';
+import ResponseProxy from './response-proxy';
+
+import addQueryParams from './-private/add-query-params';
 import signalForRequest from './-private/signal-for-request';
+import merge from './-private/merge';
 
 export default class Adapter {
-  constructor(options = {}) {
-    if (options.timeout) {
-      this.timeout = options.timeout;
+  constructor({ timeout, headers } = {}) {
+    if (timeout) {
+      this.timeout = timeout;
+    }
+    if (headers) {
+      this.headers = headers;
     }
   }
 
@@ -35,49 +39,42 @@ export default class Adapter {
     return JSON.stringify(body);
   }
 
-  async normalizeSuccess(options, body) {
+  async normalizeSuccess(params, body) {
     return body;
   }
 
-  async normalizeError(options, body) {
+  async normalizeError(params, body) {
     return body;
   }
 
-  normalize(options, body, response) {
+  normalize(params, body, response) {
     if (arguments.length === 1) {
-      return (body, response) => this.normalize(options, body, response);
+      return (body, response) => this.normalize(params, body, response);
     }
     if (response.ok) {
-      return this.normalizeSuccess(options, body, response);
+      return this.normalizeSuccess(params, body, response);
     }
-    return this.normalizeError(options, body, response);
+    return this.normalizeError(params, body, response);
   }
 
   request(params) {
-    return new AdapterRequest(options => this.fetch(options), params);
+    return new RequestBuilder(params => this.fetch(params), params);
   }
 
-  fetch(options) {
-    let { signal, timeout } = options;
-    let response = this.requestFor(options).then(request =>
+  fetch(params) {
+    let { signal, timeout } = params;
+    let response = this.requestFor(params).then(request =>
       this.makeRequest(request, { signal, timeout })
     );
-    return new AdapterResponse(response, this.normalize(options));
+    return new ResponseProxy(response, this.normalize(params));
   }
 
   async urlForRequest(options) {
     let path = await this.pathForRequest(options);
     let query = await this.queryForRequest(options);
-
     let url = this.buildURL(path);
 
-    if (query) {
-      query = serializeQueryParams(query);
-      let delimiter = url.indexOf('?') > -1 ? '&' : '?';
-      url += `${delimiter}${query}`;
-    }
-
-    return url;
+    return addQueryParams(url, query);
   }
 
   async optionsForRequest({ options }) {
@@ -131,8 +128,9 @@ export default class Adapter {
     return url;
   }
 
-  makeRequest(request, options = {}) {
-    let [signal, resolve, reject] = signalForRequest(options);
+  makeRequest(request, { signal, timeout }) {
+    let resolve, reject;
+    [signal, resolve, reject] = signalForRequest({ signal, timeout });
 
     if (signal) {
       request.signal = signal;

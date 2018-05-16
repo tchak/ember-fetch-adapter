@@ -1,19 +1,14 @@
-import getPrivateScope from './get-private-scope';
-import merge, { deepMerge } from './merge';
+import merge, { deepMerge } from './-private/merge';
 
-export default class AdapterRequest {
-  constructor(fetch, options) {
-    this.fetch = fetch;
-    if (options) {
-      getPrivateScope(this, options);
-    }
+export default class RequestBuilder {
+  constructor(fetch, params) {
+    this._fetch = fetch;
+    this._params = merge(params);
   }
 
-  clone(options = {}) {
-    let adapter = new AdapterRequest(this.fetch);
-    options = deepMerge(getPrivateScope(this), options);
-    getPrivateScope(adapter, options);
-    return adapter;
+  clone(params = {}) {
+    params = deepMerge(this._params, params);
+    return new RequestBuilder(this._fetch, params);
   }
 
   url(url) {
@@ -97,7 +92,7 @@ export default class AdapterRequest {
   }
 
   method(method) {
-    let options = merge(getPrivateScope(this), { method });
-    return this.fetch(options);
+    let params = merge(this._params, { method });
+    return this._fetch(params);
   }
 }

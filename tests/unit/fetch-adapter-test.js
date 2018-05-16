@@ -136,6 +136,11 @@ module('FetchAdapter', function(hooks) {
     );
   });
 
+  test('#requestFor empty query params', async function(assert) {
+    let request = await this.adapter.requestFor({ url: 'posts', query: {} });
+    assert.equal(request.url, '/posts');
+  });
+
   test('#buildURL', async function(assert) {
     let url = this.adapter.buildURL('posts');
     assert.equal(url, '/posts');
