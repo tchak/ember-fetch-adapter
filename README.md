@@ -12,6 +12,7 @@ Installation
 
 ```
 ember install ember-fetch-adapter
+ember install ember-fetch
 ```
 
 
