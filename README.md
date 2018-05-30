@@ -25,7 +25,7 @@ import { inject as service } from '@ember/service';
 export default Route.extend({
   adapter: service(),
 
-  async model() {
+  model() {
     return this.adapter.fetch({ url: 'items' }).json();
   }
 });
