@@ -20,8 +20,6 @@ export default Service.extend(AdapterMixin, {
     // In Prember the protocol is the string 'undefined', so we default to HTTP
     if (protocol === 'undefined:') {
       protocol = 'http:';
-    } else if (!protocol) {
-      protocol = location.protocol;
     }
 
     return protocol;
