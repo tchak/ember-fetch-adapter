@@ -2,13 +2,21 @@ import Service from '@ember/service';
 import { computed } from '@ember/object';
 import { getOwner } from '@ember/application';
 import { get } from '@ember/object';
+import fetch, { Request, Headers, AbortController } from 'fetch';
 import AdapterMixin from './adapter-mixin';
+
+export { Cache } from 'network-adapter';
 
 const httpRegex = /^https?:\/\//;
 const protocolRelativeRegex = /^\/\//;
 
-export default Service.extend(AdapterMixin, {
+const Adapter = Service.extend(AdapterMixin, {
   timeout: null,
+
+  init() {
+    this._super(...arguments);
+    this.fetch = this.fetch.bind(this);
+  },
 
   fastboot: computed(function() {
     let owner = getOwner(this);
@@ -46,3 +54,10 @@ export default Service.extend(AdapterMixin, {
     }
   }
 });
+
+Adapter.fetch = fetch;
+Adapter.Headers = Headers;
+Adapter.Request = Request;
+Adapter.AbortController = AbortController;
+
+export default Adapter;

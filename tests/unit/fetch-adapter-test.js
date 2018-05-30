@@ -1,6 +1,5 @@
 import { module, test } from 'qunit';
-import Adapter from 'ember-fetch-adapter/adapter';
-import Cache from 'ember-fetch-adapter/cache';
+import Adapter, { Cache } from 'ember-fetch-adapter';
 import { AbortController } from 'fetch';
 import { setupFakeServer, stubRequest } from 'ember-cli-fake-server';
 
