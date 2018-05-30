@@ -15,11 +15,23 @@ export default Service.extend(AdapterMixin, {
     return owner && owner.lookup('service:fastboot');
   }),
 
+  protocol: computed(function() {
+    let protocol = get(this, 'fastboot.request.protocol');
+    // In Prember the protocol is the string 'undefined', so we default to HTTP
+    if (protocol === 'undefined:') {
+      protocol = 'http:';
+    } else if (!protocol) {
+      protocol = location.protocol;
+    }
+
+    return protocol;
+  }),
+
   buildServerURL(url) {
     if (!get(this, 'fastboot.isFastBoot')) {
       return url;
     }
-    let protocol = get(this, 'fastboot.request.protocol');
+    let protocol = get(this, 'protocol');
     let host = get(this, 'fastboot.request.host');
 
     if (protocolRelativeRegex.test(url)) {
