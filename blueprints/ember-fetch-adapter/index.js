@@ -8,8 +8,6 @@ module.exports = {
   * https://github.com/ember-cli/ember-fetch/issues/98
   */
   afterInstall() {
-    return this.addPackagesToProject([
-      { name: 'ember-fetch', target: '^4.0.2' }
-    ]);
+    return this.addAddonToProject({ name: 'ember-fetch', target: '^4.0.2' });
   }
 };
