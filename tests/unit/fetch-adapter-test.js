@@ -1,5 +1,6 @@
 import { module, test } from 'qunit';
 import Adapter from 'ember-fetch-adapter/adapter';
+import Cache from 'ember-fetch-adapter/cache';
 import { AbortController } from 'fetch';
 import { setupFakeServer, stubRequest } from 'ember-cli-fake-server';
 
@@ -191,10 +192,14 @@ module('FetchAdapter', function(hooks) {
     // );
 
     try {
-      await this.adapter.fetch({
-        url: URL_WITH_DELAY,
-        timeout: 1
-      });
+      await this.adapter.fetch(
+        {
+          url: URL_WITH_DELAY
+        },
+        {
+          timeout: 1
+        }
+      );
     } catch (e) {
       assert.equal(e.name, 'AbortError');
     }
@@ -238,11 +243,13 @@ module('FetchAdapter', function(hooks) {
       let controller = new AbortController();
 
       try {
-        await this.adapter.fetch({
-          url: URL_WITH_DELAY,
-          timeout: 1,
-          signal: controller.signal
-        });
+        await this.adapter.fetch(
+          {
+            url: URL_WITH_DELAY,
+            signal: controller.signal
+          },
+          { timeout: 1 }
+        );
       } catch (e) {
         assert.equal(e.name, 'AbortError');
       }
@@ -254,16 +261,60 @@ module('FetchAdapter', function(hooks) {
       let done = assert.async();
 
       this.adapter
-        .fetch({
-          url: URL_WITH_DELAY,
-          timeout: 1,
-          signal: controller.signal
-        })
+        .fetch(
+          {
+            url: URL_WITH_DELAY,
+            signal: controller.signal
+          },
+          { timeout: 1 }
+        )
         .catch(e => {
           assert.equal(e.name, 'AbortError');
           done();
         });
       controller.abort();
+    });
+  });
+
+  module('cache', function(hooks) {
+    setupFakeServer(hooks);
+
+    hooks.beforeEach(function() {
+      let cache = new Cache();
+      this.adapter = new Adapter({ cache });
+    });
+
+    module('in-memory', function() {
+      test('get', async function(assert) {
+        assert.expect(7);
+        let posts = [{ id: 1 }];
+        stubRequest('get', '/posts', request => {
+          assert.ok(true, 'should request only once');
+          request.ok(posts);
+        });
+        stubRequest('get', '/posts/1', request => {
+          assert.ok(true, 'posts/1 requested');
+          request.ok(posts[0]);
+        });
+
+        let data = await this.adapter.fetch({ url: 'posts' }).json();
+        await this.adapter.fetch({ url: 'posts/1' });
+        let data2 = await this.adapter.fetch({ url: 'posts' }).json();
+
+        assert.deepEqual(data, data2);
+
+        let request = await this.adapter.requestFor({ url: 'posts' });
+        await this.adapter.cache.delete(request);
+        let data3 = await this.adapter.fetch({ url: 'posts' }).json();
+
+        assert.deepEqual(data, data3);
+
+        let data4 = await this.adapter
+          .fetch({ url: 'posts' }, { cache: false })
+          .json();
+
+        assert.deepEqual(data, data4);
+      });
     });
   });
 });

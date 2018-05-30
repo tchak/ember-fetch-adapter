@@ -1,32 +1,27 @@
 import { AbortController } from 'fetch';
 
-export default function signalForRequest({ signal, timeout }) {
+export default function signalForRequest(signal, timeout) {
   if (signal && signal.aborted) {
-    return [signal];
+    return [];
   }
 
   if (timeout) {
     let controller = new AbortController();
-    setTimeout(() => controller.abort(), timeout * 1000);
+    let tid = setTimeout(() => controller.abort(), timeout * 1000);
 
     if (signal) {
-      let abort = () => controller.abort();
-      let resolve = response => {
-        signal.removeEventListener('abort', abort);
-        return response;
+      let abort = () => {
+        controller.abort();
+        clearTimeout(tid);
       };
-      let reject = reason => {
-        signal.removeEventListener('abort', abort);
-        throw reason;
-      };
+      let teardown = () => signal.removeEventListener('abort', abort);
       signal.addEventListener('abort', abort);
 
-      return [controller.signal, resolve, reject];
+      return [controller.signal, teardown];
     } else {
       return [controller.signal];
     }
-  } else if (signal) {
-    return [signal];
   }
+
   return [];
 }
