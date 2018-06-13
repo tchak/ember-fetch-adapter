@@ -10,6 +10,11 @@ const protocolRelativeRegex = /^\/\//;
 export default Service.extend(AdapterMixin, {
   timeout: null,
 
+  init() {
+    this._super(...arguments);
+    this.fetch = this.fetch.bind(this);
+  },
+
   fastboot: computed(function() {
     let owner = getOwner(this);
     return owner && owner.lookup('service:fastboot');
